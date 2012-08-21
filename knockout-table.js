@@ -17,9 +17,9 @@ ko.bindingHandlers.table = {
         var value = ko.utils.unwrapObservable(valueAccessor()),
             cols = ko.utils.unwrapObservable(value.columns),
             rows = ko.utils.unwrapObservable(value.rows),
-            header = value.header,
-            data = value.data,
-            evenClass = value.evenClass,
+            header = ko.utils.unwrapObservable(value.header),
+            data = ko.utils.unwrapObservable(value.data),
+            evenClass = ko.utils.unwrapObservable(value.evenClass),
             headerIsFunction = typeof header === 'function',
             numCols = cols && cols.length,
             numRows = rows && rows.length,
@@ -52,6 +52,12 @@ ko.bindingHandlers.table = {
             numCols = cols;
             cols = ko.utils.range(0, numCols-1);
         }
+
+        // By here, rows and cols must be defined
+        if (!rows)
+            throw Error('table binding requires "rows" option');
+        if (!cols)
+            throw Error('table binding requires column information (either "columns" or "header")');
 
         var html = '<table>';
 
