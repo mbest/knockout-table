@@ -29,11 +29,14 @@
                 expectedHtml = expectedHtml.replace(/(<!--.*?-->)\s*/g, "$1");
                 // Also remove __ko__ expando properties (for DOM data) - most browsers hide these anyway but IE < 9 includes them in innerHTML
                 cleanedHtml = cleanedHtml.replace(/ __ko__\d+=\"(ko\d+|null)\"/g, "");
+                // Also remove quotes since IE < 9 leaves them out of attribute values
+                cleanedHtml = cleanedHtml.replace(/"/g, "");
+                expectedHtml = expectedHtml.replace(/"/g, "");
                 JSSpec.DSL.Subject.prototype.should_be.call({ target: cleanedHtml }, expectedHtml);
             };
             JSSpec.DSL.Subject.prototype.should_contain_text = function (expectedText) {
             	var actualText = 'textContent' in this.target ? this.target.textContent : this.target.innerText;
-                var cleanedActualText = actualText.replace(/\r\n/g, "\n");
+                var cleanedActualText = actualText.replace(/\r\n/g, "\n").replace(/\n/g, "");
                 JSSpec.DSL.Subject.prototype.should_be.call({ target: cleanedActualText }, expectedText);
             };
 
