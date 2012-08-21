@@ -141,9 +141,9 @@ describe('table binding', {
         value_of(testNode).should_contain_text('123456789');
         value_of(testNode.childNodes[0]).should_contain_html(
             '<tbody>'+
-                '<tr class="even"><td>1</td><td>2</td><td>3</td></tr>'+
-                '<tr><td>4</td><td>5</td><td>6</td></tr>'+
-                '<tr class="even"><td>7</td><td>8</td><td>9</td></tr>'+
+                '<tr><td>1</td><td>2</td><td>3</td></tr>'+
+                '<tr class="even"><td>4</td><td>5</td><td>6</td></tr>'+
+                '<tr><td>7</td><td>8</td><td>9</td></tr>'+
             '</tbody>');
     },
 

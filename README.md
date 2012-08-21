@@ -70,13 +70,17 @@ The `table` binding expects an object with the following properties:
 * `columns` - either the number of columns or an array, with each item representing a column. In the former case, `rows` is assumed to be a two-dimensional array (array of arrays). In the latter case, `rows` is assumed to be an array of objects, with the values in `columns` being the keys in each object. `columns` is usually required, but is optional if a `header` array is included.
 * `header` - either an array of header values or a function that returns the header for each column value. (optional)
 * `data` - a function that returns the data value for a given row and column. (optional)
-* `evenClass` - the name a class that will be applied to even rows in the table. (optional)
+* `evenClass` - the name of a class that will be applied to even (2, 4, 6, etc.) rows in the table. (optional)
 
-Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable; an update to a data item observable will only update the value of the corresponding table cell.
+Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will only update the value of the corresponding table cell.
 
 #### How this binding works
 
 The `table` binding uses a very fast method of table generation. 1) It first generates the table HTML as a string. 2) It then parses the string into DOM elements using `innerHTML` on a detached node. 3) Finally, it inserts the table contents into the table element in the document.
+
+#### Additional interfaces
+
+* `ko.utils.escape(string)` - returns a string with HTML special characters (&, <, >, ", etc.) converted to entities. This is used internally by the `table` binding to ensure that data values are treated as text when assembled into the table HTML.
 
 #### License and Contact
 

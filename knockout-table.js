@@ -59,6 +59,10 @@ ko.bindingHandlers.table = {
         if (!cols)
             throw Error('table binding requires column information (either "columns" or "header")');
 
+        // Ensure the class won't corrupt the HTML
+        if (evenClass)
+            evenClass = ko.utils.escape(evenClass);
+
         var html = '<table>';
 
         // Generate a header section if a header function is provided
@@ -73,7 +77,7 @@ ko.bindingHandlers.table = {
         // Generate the table body section
         html += '<tbody>';
         for (var rowIndex = 0; rowIndex < numRows; rowIndex++) {
-            html += (evenClass && !(rowIndex%2)) ? '<tr class="' + evenClass + '">' : '<tr>';
+            html += (evenClass && rowIndex%2) ? '<tr class="' + evenClass + '">' : '<tr>';
             for (var colIndex = 0; colIndex < numCols; colIndex++) {
                 html += '<td>' + unwrapItemAndSubscribe(rowIndex, colIndex) + '</td>';
             }
