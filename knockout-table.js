@@ -15,14 +15,20 @@ div = null;
 ko.bindingHandlers.table = {
     update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var value = ko.utils.unwrapObservable(valueAccessor()),
+
             cols = ko.utils.unwrapObservable(value.columns),
             rows = ko.utils.unwrapObservable(value.rows),
             header = ko.utils.unwrapObservable(value.header),
             data = ko.utils.unwrapObservable(value.data),
             evenClass = ko.utils.unwrapObservable(value.evenClass),
+
             headerIsFunction = typeof header === 'function',
+            headerIsArray = header && typeof header === 'object' && 'length' in header,
+            dataIsFunction = typeof data === 'function',
+
             numCols = cols && cols.length,
             numRows = rows && rows.length,
+
             itemSubs = [],
             tableBody;
 
@@ -30,7 +36,7 @@ ko.bindingHandlers.table = {
         function unwrapItemAndSubscribe(rowIndex, colIndex) {
             // Use a data function if provided; otherwise use the column value as a property of the row item
             var rowItem = rows[rowIndex], colItem = cols[colIndex],
-                itemValue = data ? data(rowItem, colItem) : rowItem[colItem];
+                itemValue = data ? (dataIsFunction ? data(rowItem, colItem) : rowItem[colItem[data]]) : rowItem[colItem];
 
             if (ko.isObservable(itemValue)) {
                 itemSubs.push(itemValue.subscribe(function(newValue) {
@@ -43,7 +49,7 @@ ko.bindingHandlers.table = {
         }
 
         // Use header array for number of columnes
-        if (cols === undefined && header && !headerIsFunction) {
+        if (cols === undefined && headerIsArray) {
             cols = header.length;
         }
 
@@ -69,7 +75,8 @@ ko.bindingHandlers.table = {
         if (header) {
             html += '<thead><tr>';
             for (var colIndex = 0; colIndex < numCols; colIndex++) {
-                html += '<th>' + (headerIsFunction ? header(cols[colIndex]) : header[cols[colIndex]]) + '</th>';
+                var headerValue = headerIsArray ? header[cols[colIndex]] : (headerIsFunction ? header(cols[colIndex]) : cols[colIndex][header]);
+                html += '<th>' + ko.utils.escape(headerValue) + '</th>';
             }
             html += '</tr></thead>';
         }

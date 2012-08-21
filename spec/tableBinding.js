@@ -108,7 +108,28 @@ describe('table binding', {
             '</tbody>');
     },
 
-    'Should generate a table of items from an array of row objects and and array of columns objects using a data function': function() {
+    'Should generate a table of items with a header from an array of row objects and and array of columns objects using header and data value': function() {
+        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: columns, header: 'heading', data: 'datavalue' }\"></table>";
+        var vm = {
+            rows: [
+                { col1: 1, col2: 2, col3: 3 },
+                { col1: 4, col2: 5, col3: 6 },
+                { col1: 7, col2: 8, col3: 9 }
+            ],
+            columns: [ {heading: 'a', datavalue: 'col1'}, {heading: 'b', datavalue: 'col2'}, {heading: 'c', datavalue: 'col3'} ]
+        };
+        ko.applyBindings(vm, testNode);
+        value_of(testNode).should_contain_text('abc123456789');
+        value_of(testNode.childNodes[0]).should_contain_html(
+            '<thead><tr><th>a</th><th>b</th><th>c</th></tr></thead>' +
+            '<tbody>'+
+                '<tr><td>1</td><td>2</td><td>3</td></tr>'+
+                '<tr><td>4</td><td>5</td><td>6</td></tr>'+
+                '<tr><td>7</td><td>8</td><td>9</td></tr>'+
+            '</tbody>');
+    },
+
+    'Should generate a table of items using a data function': function() {
         testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: columns, data: function(row, col) {return row[col.prop]} }\"></table>";
         var vm = {
             rows: [

@@ -38,14 +38,10 @@ var vm = {
 };
 ```
 
-This example uses header and data functions to define the values for those items.
+This example uses header and data options to define the values for those items.
 
 ```html
-<table data-bind="table: { columns: columns,
-                           rows: rows,
-                           header: function(col) { return col.heading },
-                           data: function(row, col) { return row[col.datavalue] } }">
-</table>
+<table data-bind="table: { columns: columns, rows: rows, header: 'heading', data: 'datavalue' }"></table>
 ```
 
 ```javascript
@@ -62,15 +58,25 @@ var vm = {
 };
 ```
 
+This example uses header and data functions to define the values (uses same view model as above).
+
+```html
+<table data-bind="table: { columns: columns,
+                           rows: rows,
+                           header: function(col) { return col.heading },
+                           data: function(row, col) { return row[col.datavalue] } }">
+</table>
+```
+
 #### Parameters
 
 The `table` binding expects an object with the following properties:
 
 * `rows` - an array of either objects or arrays. (required)
-* `columns` - either the number of columns or an array, with each item representing a column. In the former case, `rows` is assumed to be a two-dimensional array (array of arrays). In the latter case, `rows` is assumed to be an array of objects, with the values in `columns` being the keys in each object. `columns` is usually required, but is optional if a `header` array is included.
-* `header` - either an array of header values or a function that returns the header for each column value. (optional)
-* `data` - a function that returns the data value for a given row and column. (optional)
-* `evenClass` - the name of a class that will be applied to even (2, 4, 6, etc.) rows in the table. (optional)
+* `columns` - either the number of columns or an array, with each item representing a column. In the former case, `rows` is assumed to be a two-dimensional array (array of arrays). In the latter case, `rows` is assumed to be an array of objects, with the values in `columns` being the keys in each object. `columns` is usually required, but is optional if a `header` array is included. `columns` can also be an array of objects, in which case the `data` option must also be specified.
+* `header` - either an array of header values, a function that returns the header for each column value, or a string used to read the header from the column object. (optional)
+* `data` - either a function that returns the data value for a given row and column, or a string used to read the data key from the column object (which is then used to read from the row object). (optional)
+* `evenClass` - the name of a class that will be applied to even rows in the table, starting with the second (2) row. (optional)
 
 Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will only update the value of the corresponding table cell.
 
