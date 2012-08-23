@@ -1,7 +1,7 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.1.0
+// Version 0.1.1
 
 (function(ko, undefined) {
 
@@ -41,11 +41,11 @@ ko.bindingHandlers.table = {
             if (ko.isObservable(itemValue)) {
                 itemSubs.push(itemValue.subscribe(function(newValue) {
                     if (tableBody)
-                        tableBody.rows[rowIndex].cells[colIndex][elemTextProp] = newValue;
+                        tableBody.rows[rowIndex].cells[colIndex][elemTextProp] = newValue == null ? '' : newValue;
                 }));
                 itemValue = itemValue.peek ? itemValue.peek() : ko.ignoreDependencies(itemValue);
             }
-            return ko.utils.escape(itemValue);
+            return itemValue == null ? '' : ko.utils.escape(itemValue);
         }
 
         // Use header array for number of columnes
@@ -75,7 +75,7 @@ ko.bindingHandlers.table = {
         if (header) {
             html += '<thead><tr>';
             for (var colIndex = 0; colIndex < numCols; colIndex++) {
-                var headerValue = headerIsArray ? header[cols[colIndex]] : (headerIsFunction ? header(cols[colIndex]) : cols[colIndex][header]);
+                var headerValue = headerIsArray ? header[colIndex] : (headerIsFunction ? header(cols[colIndex]) : cols[colIndex][header]);
                 html += '<th>' + ko.utils.escape(headerValue) + '</th>';
             }
             html += '</tr></thead>';
