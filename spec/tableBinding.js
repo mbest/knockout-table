@@ -8,8 +8,27 @@ describe('table binding', {
         document.body.appendChild(testNode);
     },
 
-    'Should generate a table of items from an array of row arrays and a column count': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: 3}\"></table>";
+    'Should generate a table of items from an array of arrays': function() {
+        testNode.innerHTML = "<table data-bind=\"table: rows\"></table>";
+        var vm = {
+            rows: [
+                [ 1, 2, 3 ],
+                [ 4, 5, 6 ],
+                [ 7, 8, 9 ]
+            ]
+        };
+        ko.applyBindings(vm, testNode);
+        value_of(testNode).should_contain_text('123456789');
+        value_of(testNode.childNodes[0]).should_contain_html(
+            '<tbody>'+
+                '<tr><td>1</td><td>2</td><td>3</td></tr>'+
+                '<tr><td>4</td><td>5</td><td>6</td></tr>'+
+                '<tr><td>7</td><td>8</td><td>9</td></tr>'+
+            '</tbody>');
+    },
+
+    'Should generate a table of items from an array of arrays and a column count': function() {
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: 3}\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -28,7 +47,7 @@ describe('table binding', {
     },
 
     'Should generate a header row if a header function is provided': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: 3, header: function(column) { return columnHeaders[column] } }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: 3, header: function(column) { return columnHeaders[column] } }\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -49,7 +68,7 @@ describe('table binding', {
     },
 
     'Should use a data function, if provided, to get the table item values': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: 3, data: function(row, col) { return 'x'+row[col] } }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {rows: 3, columns: 3, dataItem: function(row, col) { return 'x'+rows[row][col] } }\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -68,7 +87,7 @@ describe('table binding', {
     },
 
     'Should generate a header row if a header array is provided': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, header: columnHeaders }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, header: columnHeaders }\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -89,7 +108,7 @@ describe('table binding', {
     },
 
     'Should generate a table of items from an array of row objects and and array of columns': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: columns}\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: columns}\"></table>";
         var vm = {
             rows: [
                 { col1: 1, col2: 2, col3: 3 },
@@ -108,8 +127,29 @@ describe('table binding', {
             '</tbody>');
     },
 
+    'Should generate a table of items from a data object, and rows and columns columns': function() {
+        testNode.innerHTML = "<table data-bind=\"table: {data: data, rows: rows, columns: columns}\"></table>";
+        var vm = {
+            data: {
+                row1: { col1: 1, col2: 2, col3: 3 },
+                row2: { col1: 4, col2: 5, col3: 6 },
+                row3: { col1: 7, col2: 8, col3: 9 }
+            },
+            columns: [ 'col1', 'col2', 'col3' ],
+            rows: [ 'row1', 'row2', 'row3' ]
+        };
+        ko.applyBindings(vm, testNode);
+        value_of(testNode).should_contain_text('123456789');
+        value_of(testNode.childNodes[0]).should_contain_html(
+            '<tbody>'+
+                '<tr><td>1</td><td>2</td><td>3</td></tr>'+
+                '<tr><td>4</td><td>5</td><td>6</td></tr>'+
+                '<tr><td>7</td><td>8</td><td>9</td></tr>'+
+            '</tbody>');
+    },
+
     'Should generate a table of items with a header from an array of row objects and and array of columns objects using header and data value': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: columns, header: 'heading', data: 'datavalue' }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: columns, header: 'heading', dataItem: 'datavalue' }\"></table>";
         var vm = {
             rows: [
                 { col1: 1, col2: 2, col3: 3 },
@@ -130,7 +170,7 @@ describe('table binding', {
     },
 
     'Should generate a table of items using a data function': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: columns, data: function(row, col) {return row[col.prop]} }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {rows: rows.length, columns: columns, dataItem: function(row, col) {return rows[row][col.prop]} }\"></table>";
         var vm = {
             rows: [
                 { col1: 1, col2: 2, col3: 3 },
@@ -149,8 +189,20 @@ describe('table binding', {
             '</tbody>');
     },
 
+    'Should generate a table of items using a data function': function() {
+        testNode.innerHTML = "<table data-bind=\"table: { columns: 3, rows: 3, dataItem: function(row, col) { return (row+1) * (col+1) } }\"></table>";
+        ko.applyBindings(null, testNode);
+        value_of(testNode).should_contain_text('123246369');
+        value_of(testNode.childNodes[0]).should_contain_html(
+            '<tbody>'+
+                '<tr><td>1</td><td>2</td><td>3</td></tr>'+
+                '<tr><td>2</td><td>4</td><td>6</td></tr>'+
+                '<tr><td>3</td><td>6</td><td>9</td></tr>'+
+            '</tbody>');
+    },
+
     'Should set the class for even rows if evenClass is set': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: 3, evenClass: 'even'}\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: 3, evenClass: 'even'}\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -169,7 +221,7 @@ describe('table binding', {
     },
 
     'Should re-generate table if an observable row array is updated or an observable column value is updated': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: columns}\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: columns}\"></table>";
         var vm = {
             rows: ko.observableArray([
                 [ 1, 2, 3 ],
@@ -211,7 +263,7 @@ describe('table binding', {
     },
 
     'Should update cell items if an observable is updated (and not regenerate whole table)': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows, columns: 3}\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: 3}\"></table>";
         var vm = {
             rows: [
                 [ ko.observable(1), 2, 3 ],

@@ -4,10 +4,26 @@ The `table` binding provides a fast method for displaying tables of data using K
 
 #### Examples
 
-This example uses a `header` array (which determines the number of columns in the table) and a `rows` two-dimentional array.
+This example outputs a two-dimensional array as a table.
 
 ```html
-<table data-bind="table: { header: header, rows: rows }"></table>
+<table data-bind="table: rows"></table>
+```
+
+```javascript
+var vm = {
+    rows: [
+        [ 1, 2, 3 ],
+        [ 4, 5, 6 ],
+        [ 7, 8, 9 ]
+    ]
+};
+```
+
+This example uses a `header` array (which determines the number of columns in the table) and a `data` two-dimensional array.
+
+```html
+<table data-bind="table: { header: header, data: rows }"></table>
 ```
 
 ```javascript
@@ -21,27 +37,28 @@ var vm = {
 };
 ```
 
-This example uses a `columns` definition array and `rows` array of data objects.
+This example uses `rows` and `columns` definition arrays and a `data` object.
 
 ```html
-<table data-bind="table: { header: columns, columns: columns, rows: rows }"></table>
+<table data-bind="table: { header: columns, rows: rows, columns: columns, data: data }"></table>
 ```
 
 ```javascript
 var vm = {
     columns: [ 'x', 'y', 'z' ],
-    rows: [
-        { x: 1, y: 2, y: 3 },
-        { x: 4, y: 5, y: 6 },
-        { x: 7, y: 8, y: 9 }
-    ]
+    rows: [ 'a', 'b', 'c' ],
+    data: {
+        a: { x: 1, y: 2, y: 3 },
+        b: { x: 4, y: 5, y: 6 },
+        c: { x: 7, y: 8, y: 9 }
+    }
 };
 ```
 
-This example uses header and data options to define the values for those items.
+This example uses `header` and `dataItem` options to define the values for those items.
 
 ```html
-<table data-bind="table: { columns: columns, rows: rows, header: 'heading', data: 'datavalue' }"></table>
+<table data-bind="table: { columns: columns, data: rows, header: 'heading', dataItem: 'datavalue' }"></table>
 ```
 
 ```javascript
@@ -58,27 +75,35 @@ var vm = {
 };
 ```
 
-This example uses header and data functions to define the values (uses same view model as above).
+This example uses `header` and `dataItem` functions to define the values (uses same view model as above).
 
 ```html
 <table data-bind="table: { columns: columns,
-                           rows: rows,
+                           rows: rows.length,
                            header: function(col) { return col.heading },
-                           data: function(row, col) { return row[col.datavalue] } }">
+                           dataItem: function(row, col) { return rows[row][col.datavalue] } }">
 </table>
 ```
 
+This example uses a `dataItem` function to output a multiplication table (up to five).
+
+```html
+<table data-bind="table: { columns: 5, rows: 5, dataItem: function(row, col) { return (row+1) * (col+1) } }"></table>
+```
+
+
 #### Parameters
 
-The `table` binding expects an object with the following properties:
+The `table` binding expects a single parameter of a two-dimensional array to output. It also accepts an object literal with the following properties:
 
-* `rows` - an array of either objects or arrays. (required)
-* `columns` - either the number of columns or an array, with each item representing a column. In the former case, `rows` is assumed to be a two-dimensional array (array of arrays). In the latter case, `rows` is assumed to be an array of objects, with the values in `columns` being the keys in each object. `columns` is usually required, but is optional if a `header` array is included. `columns` can also be an array of objects, in which case the `data` option must also be specified.
+* `data` - an array or object containing either objects or arrays, depending on the `columns` and `rows` options. `data` is required unless a `dataItem` function is provided.
+* `columns` - either the number of columns in the table or an array, with each item representing a column. In the former case, the rows in `data` should be arrays; in the latter case, they should be objects, with the values in `columns` being the keys in the object. If no `columns` option is provided, it will default to either the length of the `header` array (if it’s given and an array) or the longest row in `data`. `columns` can also be an array of objects, in which case the `dataItem` option must also be specified.
+* `rows` - either the number of the rows in the table or an array, with each item representing a row. In the former case, `data` should be an array of rows; in the latter case, it should be an object, with the values in `rows` being the keys for each row. If no `rows` option is given, it will default to the length of the `data` array.
 * `header` - either an array of header values, a function that returns the header for each column value, or a string used to read the header from the column object. (optional)
-* `data` - either a function that returns the data value for a given row and column, or a string used to read the data key from the column object (which is then used to read from the row object). (optional)
-* `evenClass` - the name of a class that will be applied to even rows in the table, starting with the second (2) row. (optional)
+* `dataItem` - either a function that returns the data value for a given row and column, or a string used to read the data-item key from the column object (which is then used to read from the row object). (optional)
+* `evenClass` - the name of a class that will be applied to even rows in the table, starting with the second row. (optional)
 
-Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will only update the value of the corresponding table cell.
+Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `data`, `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will update only the corresponding table cell’s contents.
 
 #### How this binding works
 

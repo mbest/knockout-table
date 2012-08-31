@@ -1,7 +1,7 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.1.1
+// Version 0.2.0
 
 (function(ko, undefined) {
 
@@ -9,34 +9,67 @@ var div = document.createElement('div'),
     elemTextProp = 'textContent' in div ? 'textContent' : 'innerText';
 div = null;
 
+function makeRangeIfNotArray(primary, secondary) {
+    if (primary === undefined && secondary)
+        primary = secondary.length;
+    return (typeof primary === 'number' && !isNaN(primary)) ? ko.utils.range(0, primary-1) : primary;
+}
+
+function isArray(a) {
+    return a && typeof a === 'object' && typeof a.length === 'number';
+}
+
 /*
  * Table binding
  */
 ko.bindingHandlers.table = {
     update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-        var value = ko.utils.unwrapObservable(valueAccessor()),
+        var rawValue = ko.utils.unwrapObservable(valueAccessor()),
+            value = isArray(rawValue) ? { data: rawValue } : rawValue,
 
-            cols = ko.utils.unwrapObservable(value.columns),
-            rows = ko.utils.unwrapObservable(value.rows),
-            header = ko.utils.unwrapObservable(value.header),
             data = ko.utils.unwrapObservable(value.data),
+            dataItem = ko.utils.unwrapObservable(value.dataItem),
+            header = ko.utils.unwrapObservable(value.header),
             evenClass = ko.utils.unwrapObservable(value.evenClass),
 
-            headerIsFunction = typeof header === 'function',
-            headerIsArray = header && typeof header === 'object' && 'length' in header,
-            dataIsFunction = typeof data === 'function',
+            dataIsArray = isArray(data),
+            dataIsObject = typeof data === 'object',
+            dataItemIsFunction = typeof dataItem === 'function',
 
+            headerIsArray = isArray(header),
+            headerIsFunction = typeof header === 'function',
+
+            cols = makeRangeIfNotArray(ko.utils.unwrapObservable(value.columns), headerIsArray && header),
+            rows = makeRangeIfNotArray(ko.utils.unwrapObservable(value.rows), dataIsArray && data),
             numCols = cols && cols.length,
             numRows = rows && rows.length,
 
-            itemSubs = [],
-            tableBody;
+            itemSubs = [], tableBody, rowIndex, colIndex;
+
+        // data must be set and be either a function or an array
+        if (!dataIsObject && !dataItemIsFunction)
+            throw Error('table binding requires a data array or dataItem function');
+
+        // If not set, read number of columns from data
+        if (numCols === undefined && dataIsArray && isArray(data[0])) {
+            for (numCols = rowIndex = 0; rowIndex < data.length; rowIndex++) {
+                if (data[0].length > numCols)
+                    numCols = data[0].length;
+            }
+            cols = makeRangeIfNotArray(numCols);
+        }
+
+        // By here, rows and cols must be defined
+        if (!(numRows >= 0))
+            throw Error('table binding requires row information (either "rows" or a "data" array)');
+        if (!(numCols >= 0))
+            throw Error('table binding requires column information (either "columns" or "header")');
 
         // Return the item value and update table cell if observable item changes
         function unwrapItemAndSubscribe(rowIndex, colIndex) {
             // Use a data function if provided; otherwise use the column value as a property of the row item
             var rowItem = rows[rowIndex], colItem = cols[colIndex],
-                itemValue = data ? (dataIsFunction ? data(rowItem, colItem) : rowItem[colItem[data]]) : rowItem[colItem];
+                itemValue = dataItem ? (dataItemIsFunction ? dataItem(rowItem, colItem, data) : data[rowItem][colItem[dataItem]]) : data[rowItem][colItem];
 
             if (ko.isObservable(itemValue)) {
                 itemSubs.push(itemValue.subscribe(function(newValue) {
@@ -48,23 +81,6 @@ ko.bindingHandlers.table = {
             return itemValue == null ? '' : ko.utils.escape(itemValue);
         }
 
-        // Use header array for number of columnes
-        if (cols === undefined && headerIsArray) {
-            cols = header.length;
-        }
-
-        // Support either a column array or number
-        if (cols && numCols === undefined) {
-            numCols = cols;
-            cols = ko.utils.range(0, numCols-1);
-        }
-
-        // By here, rows and cols must be defined
-        if (!rows)
-            throw Error('table binding requires "rows" option');
-        if (!cols)
-            throw Error('table binding requires column information (either "columns" or "header")');
-
         // Ensure the class won't corrupt the HTML
         if (evenClass)
             evenClass = ko.utils.escape(evenClass);
@@ -74,7 +90,7 @@ ko.bindingHandlers.table = {
         // Generate a header section if a header function is provided
         if (header) {
             html += '<thead><tr>';
-            for (var colIndex = 0; colIndex < numCols; colIndex++) {
+            for (colIndex = 0; colIndex < numCols; colIndex++) {
                 var headerValue = headerIsArray ? header[colIndex] : (headerIsFunction ? header(cols[colIndex]) : cols[colIndex][header]);
                 html += '<th>' + ko.utils.escape(headerValue) + '</th>';
             }
@@ -83,9 +99,9 @@ ko.bindingHandlers.table = {
 
         // Generate the table body section
         html += '<tbody>';
-        for (var rowIndex = 0; rowIndex < numRows; rowIndex++) {
+        for (rowIndex = 0; rowIndex < numRows; rowIndex++) {
             html += (evenClass && rowIndex%2) ? '<tr class="' + evenClass + '">' : '<tr>';
-            for (var colIndex = 0; colIndex < numCols; colIndex++) {
+            for (colIndex = 0; colIndex < numCols; colIndex++) {
                 html += '<td>' + unwrapItemAndSubscribe(rowIndex, colIndex) + '</td>';
             }
             html += '</tr>';
