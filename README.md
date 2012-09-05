@@ -7,12 +7,12 @@ The `table` binding provides a fast method for displaying tables of data using K
 This example outputs a two-dimensional array as a table.
 
 ```html
-<table data-bind="table: rows"></table>
+<table data-bind="table: data"></table>
 ```
 
 ```javascript
 var vm = {
-    rows: [
+    data: [
         [ 1, 2, 3 ],
         [ 4, 5, 6 ],
         [ 7, 8, 9 ]
@@ -23,13 +23,13 @@ var vm = {
 This example uses a `header` array (which determines the number of columns in the table) and a `data` two-dimensional array.
 
 ```html
-<table data-bind="table: { header: header, data: rows }"></table>
+<table data-bind="table: { header: header, data: data }"></table>
 ```
 
 ```javascript
 var vm = {
     header: [ 'x', 'y', 'z' ],
-    rows: [
+    data: [
         [ 1, 2, 3 ],
         [ 4, 5, 6 ],
         [ 7, 8, 9 ]
@@ -58,7 +58,7 @@ var vm = {
 This example uses `header` and `dataItem` options to define the values for those items.
 
 ```html
-<table data-bind="table: { columns: columns, data: rows, header: 'heading', dataItem: 'datavalue' }"></table>
+<table data-bind="table: { columns: columns, data: data, header: 'heading', dataItem: 'datavalue' }"></table>
 ```
 
 ```javascript
@@ -67,7 +67,7 @@ var vm = {
         { heading: 'x', datavalue: 'col1' },
         { heading: 'y', datavalue: 'col2' },
         { heading: 'x', datavalue: 'col3' } ]
-    rows: [
+    data: [
         { col1: 1, col2: 2, col3: 3 },
         { col1: 4, col2: 5, col3: 6 },
         { col1: 7, col2: 8, col3: 9 }
@@ -79,9 +79,9 @@ This example uses `header` and `dataItem` functions to define the values (uses s
 
 ```html
 <table data-bind="table: { columns: columns,
-                           rows: rows.length,
+                           rows: data.length,
                            header: function(col) { return col.heading },
-                           dataItem: function(row, col) { return rows[row][col.datavalue] } }">
+                           dataItem: function(row, col) { return data[row][col.datavalue] } }">
 </table>
 ```
 
@@ -97,13 +97,13 @@ This example uses a `dataItem` function to output a multiplication table (up to 
 The `table` binding expects a single parameter of a two-dimensional array to output. It also accepts an object literal with the following properties:
 
 * `data` - an array or object containing either objects or arrays, depending on the `columns` and `rows` options. `data` is required unless a `dataItem` function is provided.
-* `columns` - either the number of columns in the table or an array, with each item representing a column. In the former case, the rows in `data` should be arrays; in the latter case, they should be objects, with the values in `columns` being the keys in the object. If no `columns` option is provided, it will default to either the length of the `header` array (if it’s given and an array) or the longest row in `data`. `columns` can also be an array of objects, in which case the `dataItem` option must also be specified.
+* `columns` - either the number of columns in the table or an array, with each item representing a column. In the former case, the rows in `data` should be arrays; in the latter case, they should be objects, with the values in `columns` being the keys in the object. If no `columns` option is provided, it will default to either the length of the `header` array (if itï¿½s given and an array) or the longest row in `data`. `columns` can also be an array of objects, in which case the `dataItem` option must also be specified.
 * `rows` - either the number of the rows in the table or an array, with each item representing a row. In the former case, `data` should be an array of rows; in the latter case, it should be an object, with the values in `rows` being the keys for each row. If no `rows` option is given, it will default to the length of the `data` array.
 * `header` - either an array of header values, a function that returns the header for each column value, or a string used to read the header from the column object. (optional)
 * `dataItem` - either a function that returns the data value for a given row and column, or a string used to read the data-item key from the column object (which is then used to read from the row object). (optional)
 * `evenClass` - the name of a class that will be applied to even rows in the table, starting with the second row. (optional)
 
-Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `data`, `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will update only the corresponding table cell’s contents.
+Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `data`, `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will update only the corresponding table cellï¿½s contents.
 
 #### How this binding works
 
