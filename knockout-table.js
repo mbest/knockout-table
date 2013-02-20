@@ -1,7 +1,7 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.2.0
+// Version 0.2.1
 
 (function(ko, undefined) {
 
@@ -109,8 +109,7 @@ ko.bindingHandlers.table = {
         html += '</tbody></table>';
 
         // Remove previous table contents
-        while (element.firstChild)
-            ko.removeNode(element.firstChild);
+        element.innerHTML = '';
 
         // Insert new table contents
         var tempDiv = document.createElement('div');

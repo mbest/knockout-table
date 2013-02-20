@@ -79,9 +79,9 @@ This example uses `header` and `dataItem` functions to define the values (uses s
 
 ```html
 <table data-bind="table: { columns: columns,
-                           rows: data.length,
+                           data: data,
                            header: function(col) { return col.heading },
-                           dataItem: function(row, col) { return data[row][col.datavalue] } }">
+                           dataItem: function(row, col, data) { return data[row][col.datavalue] } }">
 </table>
 ```
 

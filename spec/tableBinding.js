@@ -47,7 +47,7 @@ describe('table binding', {
     },
 
     'Should generate a header row if a header function is provided': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: 3, header: function(column) { return columnHeaders[column] } }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, header: function(column) { return columnHeaders[column] } }\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -68,7 +68,7 @@ describe('table binding', {
     },
 
     'Should use a data function, if provided, to get the table item values': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: 3, columns: 3, dataItem: function(row, col) { return 'x'+rows[row][col] } }\"></table>";
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, dataItem: function(row, col, data) { return 'x'+data[row][col] } }\"></table>";
         var vm = {
             rows: [
                 [ 1, 2, 3 ],
@@ -127,7 +127,7 @@ describe('table binding', {
             '</tbody>');
     },
 
-    'Should generate a table of items from a data object, and rows and columns columns': function() {
+    'Should generate a table of items from a data object, and rows and columns arrays': function() {
         testNode.innerHTML = "<table data-bind=\"table: {data: data, rows: rows, columns: columns}\"></table>";
         var vm = {
             data: {
@@ -169,8 +169,8 @@ describe('table binding', {
             '</tbody>');
     },
 
-    'Should generate a table of items using a data function': function() {
-        testNode.innerHTML = "<table data-bind=\"table: {rows: rows.length, columns: columns, dataItem: function(row, col) {return rows[row][col.prop]} }\"></table>";
+    'Should be able to combine data from row and column objects using a data function': function() {
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: columns, dataItem: function(row, col, data) {return data[row][col.prop]} }\"></table>";
         var vm = {
             rows: [
                 { col1: 1, col2: 2, col3: 3 },
