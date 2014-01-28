@@ -1,9 +1,9 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.2.2
+// Version 0.2.3
 
-(function(ko, undefined) {
+(function (ko, undefined) {
 
 var div = document.createElement('div'),
     elemTextProp = 'textContent' in div ? 'textContent' : 'innerText';
@@ -19,11 +19,15 @@ function isArray(a) {
     return a && typeof a === 'object' && typeof a.length === 'number';
 }
 
+if (!ko.bindingFlags) { ko.bindingFlags = {}; }
+
 /*
  * Table binding
  */
 ko.bindingHandlers.table = {
-    update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+    flags: ko.bindingFlags.contentBind | ko.bindingFlags.contentSet,
+    init: function () { return { controlsDescendantBindings: true }; },
+    update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var rawValue = ko.utils.unwrapObservable(valueAccessor()),
             value = isArray(rawValue) ? { data: rawValue } : rawValue,
 
@@ -72,7 +76,7 @@ ko.bindingHandlers.table = {
                 itemValue = dataItem ? (dataItemIsFunction ? dataItem(rowItem, colItem, data) : data[rowItem][colItem[dataItem]]) : data[rowItem][colItem];
 
             if (ko.isObservable(itemValue)) {
-                itemSubs.push(itemValue.subscribe(function(newValue) {
+                itemSubs.push(itemValue.subscribe(function (newValue) {
                     if (tableBody)
                         tableBody.rows[rowIndex].cells[colIndex][elemTextProp] = newValue == null ? '' : newValue;
                 }));
@@ -122,8 +126,8 @@ ko.bindingHandlers.table = {
         // Make sure subscriptions are disposed if the table is cleared
         if (itemSubs) {
             tableBody = element.tBodies[0];
-            ko.utils.domNodeDisposal.addDisposeCallback(tableBody, function() {
-                ko.utils.arrayForEach(itemSubs, function(itemSub) {
+            ko.utils.domNodeDisposal.addDisposeCallback(tableBody, function () {
+                ko.utils.arrayForEach(itemSubs, function (itemSub) {
                     itemSub.dispose();
                 });
             });
@@ -134,7 +138,7 @@ ko.bindingHandlers.table = {
 /*
  * Escape a string for html representation
  */
-ko.utils.escape = function(string) {
+ko.utils.escape = function (string) {
     return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
 };
 
@@ -165,9 +169,9 @@ function findSubObjectWithProperty(obj, prop) {
 if (!ko.ignoreDependencies) {
     var depDet = findSubObjectWithProperty(ko, 'end'),
         depDetBeginName = findNameMethodSignatureContaining(depDet, '.push({');
-    ko.ignoreDependencies = function(callback, object, args) {
+    ko.ignoreDependencies = function (callback, object, args) {
         try {
-            depDet[depDetBeginName](function() {});
+            depDet[depDetBeginName](function () {});
             return callback.apply(object, args || []);
         } finally {
             depDet.end();
