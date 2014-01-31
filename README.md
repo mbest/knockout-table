@@ -6,10 +6,6 @@ The `table` binding provides a fast method for displaying tables of data using K
 
 This example outputs a two-dimensional array as a table.
 
-```html
-<table data-bind="table: data"></table>
-```
-
 ```javascript
 var vm = {
     data: [
@@ -20,11 +16,11 @@ var vm = {
 };
 ```
 
-This example uses a `header` array (which determines the number of columns in the table) and a `data` two-dimensional array.
-
 ```html
-<table data-bind="table: { header: header, data: data }"></table>
+<table data-bind="table: data"></table>
 ```
+
+This example uses a `header` array (which determines the number of columns in the table) and a `data` two-dimensional array.
 
 ```javascript
 var vm = {
@@ -37,11 +33,11 @@ var vm = {
 };
 ```
 
-This example uses `rows` and `columns` definition arrays and a `data` object.
-
 ```html
-<table data-bind="table: { header: columns, rows: rows, columns: columns, data: data }"></table>
+<table data-bind="table: { header: header, data: data }"></table>
 ```
+
+This example uses `rows` and `columns` definition arrays and a `data` object.
 
 ```javascript
 var vm = {
@@ -55,11 +51,11 @@ var vm = {
 };
 ```
 
-This example uses `header` and `dataItem` options to define the values for those items.
-
 ```html
-<table data-bind="table: { columns: columns, data: data, header: 'heading', dataItem: 'datavalue' }"></table>
+<table data-bind="table: { header: columns, rows: rows, columns: columns, data: data }"></table>
 ```
+
+This example uses `header` and `dataItem` options to define the values for those items.
 
 ```javascript
 var vm = {
@@ -73,6 +69,10 @@ var vm = {
         { col1: 7, col2: 8, col3: 9 }
     ]
 };
+```
+
+```html
+<table data-bind="table: { columns: columns, data: data, header: 'heading', dataItem: 'datavalue' }"></table>
 ```
 
 This example uses `header` and `dataItem` functions to define the values (uses same view model as above).
