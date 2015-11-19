@@ -294,5 +294,17 @@ describe('table binding', {
                 '<tr><td>40</td><td>5</td><td>6</td></tr>'+
                 '<tr><td>70</td><td>8</td><td>9</td></tr>'+
             '</tbody>');
+    },
+
+    'Should be able to output HTML using ko.utils.safeString': function() {
+        testNode.innerHTML = "<table data-bind=\"table: { columns: 3, rows: 3, dataItem: function(row, col) { return ko.utils.safeString( ((row+1) * (col+1)) + '&amp;' ) } }\"></table>";
+        ko.applyBindings(null, testNode);
+        value_of(testNode).should_contain_text('1&2&3&2&4&6&3&6&9&');
+        value_of(testNode.childNodes[0]).should_contain_html(
+            '<tbody>'+
+                '<tr><td>1&amp;</td><td>2&amp;</td><td>3&amp;</td></tr>'+
+                '<tr><td>2&amp;</td><td>4&amp;</td><td>6&amp;</td></tr>'+
+                '<tr><td>3&amp;</td><td>6&amp;</td><td>9&amp;</td></tr>'+
+            '</tbody>');
     }
 });

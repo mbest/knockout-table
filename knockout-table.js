@@ -1,7 +1,7 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.2.3
+// Version 0.3.0
 
 (function (ko, undefined) {
 
@@ -28,12 +28,15 @@ ko.bindingHandlers.table = {
     flags: ko.bindingFlags.contentBind | ko.bindingFlags.contentSet,
     init: function () { return { controlsDescendantBindings: true }; },
     update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-        var rawValue = ko.utils.unwrapObservable(valueAccessor()),
+        var rawValue = ko.utils.unwrapObservable(valueAccessor()) || [],
             value = isArray(rawValue) ? { data: rawValue } : rawValue,
 
             data = ko.utils.unwrapObservable(value.data),
             dataItem = ko.utils.unwrapObservable(value.dataItem),
+            classItem = ko.utils.unwrapObservable(value.classItem),
+
             header = ko.utils.unwrapObservable(value.header),
+            rowheader = ko.utils.unwrapObservable(value.rowheader),
             evenClass = ko.utils.unwrapObservable(value.evenClass),
 
             dataIsArray = isArray(data),
@@ -55,12 +58,17 @@ ko.bindingHandlers.table = {
             throw Error('table binding requires a data array or dataItem function');
 
         // If not set, read number of columns from data
-        if (numCols === undefined && dataIsArray && isArray(data[0])) {
-            for (numCols = rowIndex = 0; rowIndex < data.length; rowIndex++) {
-                if (data[0].length > numCols)
-                    numCols = data[0].length;
+        if (numCols === undefined && dataIsArray) {
+            if (!data.length) {
+                numCols = 0;
+                cols = [];
+            } else if (isArray(data[0])) {
+                for (numCols = rowIndex = 0; rowIndex < data.length; rowIndex++) {
+                    if (data[0].length > numCols)
+                        numCols = data[0].length;
+                }
+                cols = makeRangeIfNotArray(numCols);
             }
-            cols = makeRangeIfNotArray(numCols);
         }
 
         // By here, rows and cols must be defined
@@ -69,12 +77,17 @@ ko.bindingHandlers.table = {
         if (!(numCols >= 0))
             throw Error('table binding requires column information (either "columns" or "header")');
 
+        if (rowheader && !isArray(rowheader))
+            throw Error('table binding "rowheader" must be an array');
+
         // Return the item value and update table cell if observable item changes
         function unwrapItemAndSubscribe(rowIndex, colIndex) {
             // Use a data function if provided; otherwise use the column value as a property of the row item
             var rowItem = rows[rowIndex], colItem = cols[colIndex],
                 itemValue = dataItem ? (dataItemIsFunction ? dataItem(rowItem, colItem, data) : data[rowItem][colItem[dataItem]]) : data[rowItem][colItem];
 
+            if (rowheader)
+                ++colIndex;
             if (ko.isObservable(itemValue)) {
                 itemSubs.push(itemValue.subscribe(function (newValue) {
                     if (tableBody)
@@ -83,6 +96,15 @@ ko.bindingHandlers.table = {
                 itemValue = itemValue.peek ? itemValue.peek() : ko.ignoreDependencies(itemValue);
             }
             return itemValue == null ? '' : ko.utils.escape(itemValue);
+        }
+
+        function getItemClass(rowIndex, colIndex) {
+            if (classItem) {
+                var colItem = cols[colIndex], classKey = colItem[classItem];
+                if (classKey) {
+                    return ko.utils.escape(data[rows[rowIndex]][classKey]);
+                }
+            }
         }
 
         // Ensure the class won't corrupt the HTML
@@ -94,6 +116,8 @@ ko.bindingHandlers.table = {
         // Generate a header section if a header function is provided
         if (header) {
             html += '<thead><tr>';
+            if (rowheader)
+                html += '<th></th>';
             for (colIndex = 0; colIndex < numCols; colIndex++) {
                 var headerValue = headerIsArray ? header[colIndex] : (headerIsFunction ? header(cols[colIndex]) : cols[colIndex][header]);
                 html += '<th>' + ko.utils.escape(headerValue) + '</th>';
@@ -105,8 +129,11 @@ ko.bindingHandlers.table = {
         html += '<tbody>';
         for (rowIndex = 0; rowIndex < numRows; rowIndex++) {
             html += (evenClass && rowIndex%2) ? '<tr class="' + evenClass + '">' : '<tr>';
+            if (rowheader)
+                html += '<th>' + ko.utils.escape(rowheader[rowIndex]) + '</th>';
             for (colIndex = 0; colIndex < numCols; colIndex++) {
-                html += '<td>' + unwrapItemAndSubscribe(rowIndex, colIndex) + '</td>';
+                var itemClass = classItem && getItemClass(rowIndex, colIndex);
+                html += (itemClass ? '<td class="' + itemClass + '">' : '<td>') + unwrapItemAndSubscribe(rowIndex, colIndex) + '</td>';
             }
             html += '</tr>';
         }
@@ -117,7 +144,7 @@ ko.bindingHandlers.table = {
             ko.removeNode(element.firstChild);
 
         // Insert new table contents
-        var tempDiv = document.createElement('div');
+        var tempDiv = element.ownerDocument.createElement('div');
         tempDiv.innerHTML = html;
         var tempTable = tempDiv.firstChild;
         while (tempTable.firstChild)
@@ -138,9 +165,21 @@ ko.bindingHandlers.table = {
 /*
  * Escape a string for html representation
  */
+function SafeString(string) {
+    this.value = string;
+}
+
 ko.utils.escape = function (string) {
-    return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
+    if (string && string instanceof SafeString) {
+        return string.value;
+    } else {
+        return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
+    }
 };
+
+ko.utils.safeString = function (string) {
+    return new SafeString(string);
+}
 
 /*
  * Helper functions for finding minified property names
