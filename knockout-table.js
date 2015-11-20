@@ -1,7 +1,7 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.3.0
+// Version 0.3.1
 
 (function (ko, undefined) {
 
@@ -163,23 +163,28 @@ ko.bindingHandlers.table = {
 };
 
 /*
- * Escape a string for html representation
+ * Escape a string for html representation; use SafeString to indicate that string shouldn't be escaped
  */
 function SafeString(string) {
-    this.value = string;
+    this.value = '' + string;
 }
+SafeString.prototype.toString = function () {
+    return this.value;
+};
+
+ko.utils.safeString = function (string) {
+    return new SafeString(string);
+};
 
 ko.utils.escape = function (string) {
-    if (string && string instanceof SafeString) {
+    if (!string) {
+        return string;
+    } else if (string instanceof SafeString) {
         return string.value;
     } else {
         return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
     }
 };
-
-ko.utils.safeString = function (string) {
-    return new SafeString(string);
-}
 
 /*
  * Helper functions for finding minified property names

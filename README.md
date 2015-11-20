@@ -111,6 +111,7 @@ The `table` binding uses a very fast method of table generation. 1) It first gen
 
 #### Additional interfaces
 
+* `ko.utils.safeString(string)` - returns the string wrapped in a special object. The `table` binding will accept this string as safe and not escape it. This allows you to output HTML codes as part of the row or header data.
 * `ko.utils.escape(string)` - returns a string with HTML special characters (&, <, >, ", etc.) converted to entities. This is used internally by the `table` binding to ensure that data values are treated as text when assembled into the table HTML.
 
 #### License and Contact

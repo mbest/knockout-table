@@ -306,5 +306,30 @@ describe('table binding', {
                 '<tr><td>2&amp;</td><td>4&amp;</td><td>6&amp;</td></tr>'+
                 '<tr><td>3&amp;</td><td>6&amp;</td><td>9&amp;</td></tr>'+
             '</tbody>');
+    },
+
+    'Should set the cell class if classItem is set': function() {
+        testNode.innerHTML = "<table data-bind=\"table: {data: rows, columns: columns, header: 'heading', dataItem: 'datavalue', classItem: 'cls' }\"></table>";
+        var vm = {
+            rows: [
+                { col1: 1, col2: 2, col3: 3, cls1: 'x', cls3: 'z' },
+                { col1: 4, col2: 5, col3: 6, cls2: 'y' },
+                { col1: 7, col2: 8, col3: 9, cls3: 'z' }
+            ],
+            columns: [
+                { heading: 'a', datavalue: 'col1', cls: 'cls1' },
+                { heading: 'b', datavalue: 'col2', cls: 'cls2' },
+                { heading: 'c', datavalue: 'col3', cls: 'cls3' }
+            ]
+        };
+        ko.applyBindings(vm, testNode);
+        value_of(testNode).should_contain_text('abc123456789');
+        value_of(testNode.childNodes[0]).should_contain_html(
+            '<thead><tr><th>a</th><th>b</th><th>c</th></tr></thead>' +
+            '<tbody>'+
+                '<tr><td class=x>1</td><td>2</td><td class=z>3</td></tr>'+
+                '<tr><td>4</td><td class=y>5</td><td>6</td></tr>'+
+                '<tr><td>7</td><td>8</td><td class=z>9</td></tr>'+
+            '</tbody>');
     }
 });
