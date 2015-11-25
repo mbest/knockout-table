@@ -1,13 +1,11 @@
 // TABLE BINDING plugin for Knockout http://knockoutjs.com/
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
-// Version 0.3.1
+// Version 0.4.0
 
 (function (ko, undefined) {
 
-var div = document.createElement('div'),
-    elemTextProp = 'textContent' in div ? 'textContent' : 'innerText';
-div = null;
+var elemTextProp = 'textContent' in document.createElement('div') ? 'textContent' : 'innerText';
 
 function makeRangeIfNotArray(primary, secondary) {
     if (primary === undefined && secondary)
@@ -19,14 +17,13 @@ function isArray(a) {
     return a && typeof a === 'object' && typeof a.length === 'number';
 }
 
-if (!ko.bindingFlags) { ko.bindingFlags = {}; }
-
 /*
  * Table binding
  */
 ko.bindingHandlers.table = {
-    flags: ko.bindingFlags.contentBind | ko.bindingFlags.contentSet,
-    init: function () { return { controlsDescendantBindings: true }; },
+    init: function () {
+        return { controlsDescendantBindings: true };
+    },
     update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var rawValue = ko.utils.unwrapObservable(valueAccessor()) || [],
             value = isArray(rawValue) ? { data: rawValue } : rawValue,
@@ -93,7 +90,7 @@ ko.bindingHandlers.table = {
                     if (tableBody)
                         tableBody.rows[rowIndex].cells[colIndex][elemTextProp] = newValue == null ? '' : newValue;
                 }));
-                itemValue = itemValue.peek ? itemValue.peek() : ko.ignoreDependencies(itemValue);
+                itemValue = itemValue.peek();
             }
             return itemValue == null ? '' : ko.utils.escape(itemValue);
         }
@@ -185,42 +182,5 @@ ko.utils.escape = function (string) {
         return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
     }
 };
-
-/*
- * Helper functions for finding minified property names
- */
-function findNameMethodSignatureContaining(obj, match) {
-    for (var a in obj)
-        if (obj.hasOwnProperty(a) && obj[a].toString().indexOf(match) >= 0)
-            return a;
-}
-
-function findPropertyName(obj, equals) {
-    for (var a in obj)
-        if (obj.hasOwnProperty(a) && obj[a] === equals)
-            return a;
-}
-
-function findSubObjectWithProperty(obj, prop) {
-    for (var a in obj)
-        if (obj.hasOwnProperty(a) && obj[a] && obj[a][prop])
-            return obj[a];
-}
-
-/*
- * ko.ignoreDependencies is used to access observables without creating a dependency
- */
-if (!ko.ignoreDependencies) {
-    var depDet = findSubObjectWithProperty(ko, 'end'),
-        depDetBeginName = findNameMethodSignatureContaining(depDet, '.push({');
-    ko.ignoreDependencies = function (callback, object, args) {
-        try {
-            depDet[depDetBeginName](function () {});
-            return callback.apply(object, args || []);
-        } finally {
-            depDet.end();
-        }
-    }
-}
 
 })(ko);
